@@ -1,0 +1,39 @@
+﻿////////////////////////////////////////////////////////////////////////////////////
+// This file is generated code.  Do not modify it's contents.
+// If changes are required, update the message.xml in the TemplateBulder
+// project and run the TemplateBuilder to recreate the files.
+////////////////////////////////////////////////////////////////////////////////////
+using System;
+using System.IO;
+using System.Collections.Generic;
+using ACE.Network.Enums;
+using ACE.Network.Types;
+using ACE.Network.Extensions;
+
+namespace ACE.Network.Messages
+{
+    internal static class MessageFactory
+    {
+        static Dictionary<uint, Func<BinaryReader, Message>> S2CMessageTable = new Dictionary<uint, Func<BinaryReader, Message>>();
+        static Dictionary<uint, Func<BinaryReader, Message>> C2SMessageTable = new Dictionary<uint, Func<BinaryReader, Message>>();
+
+        static MessageFactory()
+        {
+//TableAdds
+        }
+
+        internal static Message ReadS2CMessage(uint type, BinaryReader reader)
+        {
+            if (!S2CMessageTable.ContainsKey(type))
+                throw new ArgumentException("Message type " + type + " is not one we have implimented!");
+            return S2CMessageTable[type](reader);
+        }
+
+        internal static Message ReadC2SMessage(uint type, BinaryReader reader)
+        {
+            if (!C2SMessageTable.ContainsKey(type))
+                throw new ArgumentException("Message type " + type + " is not one we have implimented!");
+            return C2SMessageTable[type](reader);
+        }
+    }
+}

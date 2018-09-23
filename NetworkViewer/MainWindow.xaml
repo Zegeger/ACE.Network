@@ -1,0 +1,111 @@
+﻿<Window x:Class="ACE.Network.Tools.NetworkViewer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ACE.Network.Tools.NetworkViewer"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="800" Width="1400" Closing="Window_Closing">
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem x:Name="OpenMenu" Header="_Open File" Click="OpenMenu_Click"/>
+                <MenuItem x:Name="OpenFolderMenu" Header="Open _Folder" Click="OpenFolderMenu_Click"/>
+                <MenuItem x:Name="StatsMenu" Header="_Global Stats" Click="StatsMenu_Click" />
+                <MenuItem x:Name="SaveMenu" Header="_Save" />
+                <MenuItem x:Name="QuitMenu" Header="_Quit" Click="QuitMenu_Click"/>
+            </MenuItem>
+            <MenuItem Header="_Options">
+                <MenuItem x:Name="ErrorOnlyMenu" Header="_Error Only" IsCheckable="True" Click="ErrorOnlyMenu_Click"/>
+                <MenuItem x:Name="ApplyFilterOnLoad" Header="_Apply Filter During Load" IsCheckable="True" Click="ApplyFilterOnLoad_Click" IsChecked="True"/>
+            </MenuItem>
+        </Menu>
+        <StatusBar DockPanel.Dock="Bottom" Height="22">
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
+            <StatusBarItem>
+                <ProgressBar x:Name="StatusProgress" Value="0" Width="190" Height="16" />
+            </StatusBarItem>
+            <Separator Grid.Column="1" />
+            <StatusBarItem Grid.Column="2">
+                <TextBlock  x:Name="StatusText" Text="" />
+            </StatusBarItem>
+        </StatusBar>
+        <Grid DockPanel.Dock="Top" Height="20" Margin="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="12*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="MessageTypeFilter" Grid.Column="0" Text="0x0000" KeyUp="MessageTypeFilter_KeyUp" />
+            <TextBox x:Name="MessagePropertyFilter" Grid.Column="1" Margin="2,0,0,0" />
+            <Button x:Name="ApplyFilter" Grid.Column="2" Click="ApplyFilter_Click" Margin="2,0" Content="Apply"/>
+        </Grid>
+        <Grid Margin="2,0,2,2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="6*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="3*"/>
+            </Grid.ColumnDefinitions>
+            <!--<ListBox x:Name="FileList" ItemsSource="{Binding}" DisplayMemberPath="FileName"/>-->
+            
+            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch"/>
+            <GridSplitter Grid.Column="3" HorizontalAlignment="Stretch"/>
+            <TreeView x:Name="DetailView" Grid.Column="4"/>
+            <ListView x:Name="FileView" ItemsSource="{Binding}" SelectionChanged="FileView_SelectionChanged">
+                <ListView.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem x:Name="StatsDetails" Header="_Stats" IsEnabled="False" Click="StatsDetailsMenu_Click"/>
+                        <MenuItem x:Name="ErrorsDetails" Header="_Errors" IsEnabled="False" Click="ErrorDetailsMenu_Click"/>
+                    </ContextMenu>
+                </ListView.ContextMenu>
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Width="175" DisplayMemberBinding="{Binding Path=FileName}">
+                            <GridViewColumnHeader>File</GridViewColumnHeader>
+                        </GridViewColumn>
+                        <GridViewColumn Width="50" DisplayMemberBinding="{Binding Path=Error}">
+                            <GridViewColumnHeader>Error</GridViewColumnHeader>
+                        </GridViewColumn>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+            <ListView x:Name="MessageView" Grid.Column="2" ItemsSource="{Binding}" SelectionMode="Single" SelectionChanged="MessageView_SelectionChanged">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Width="175" DisplayMemberBinding="{Binding Path=FileName}">
+                            <GridViewColumnHeader>File</GridViewColumnHeader>
+                        </GridViewColumn>
+                        <GridViewColumn Width="75" DisplayMemberBinding="{Binding Path=Message.NetworkPackets}">
+                            <GridViewColumnHeader>Packet Nums</GridViewColumnHeader>
+                        </GridViewColumn>
+                        <GridViewColumn Width="75" DisplayMemberBinding="{Binding Path=Message.MessageTypeNum}">
+                            <GridViewColumnHeader>Type Num</GridViewColumnHeader>
+                        </GridViewColumn>
+                        <GridViewColumn Width="200" DisplayMemberBinding="{Binding Path=Message.MessageType}">
+                            <GridViewColumnHeader>Type</GridViewColumnHeader>
+                        </GridViewColumn>
+                        <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=Message.MessageDirection}">
+                            <GridViewColumnHeader>Direction</GridViewColumnHeader>
+                        </GridViewColumn>
+                        <GridViewColumn Width="75" DisplayMemberBinding="{Binding Path=Message.ByteLength}">
+                            <GridViewColumnHeader>Length</GridViewColumnHeader>
+                        </GridViewColumn>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </Grid>
+        
+    </DockPanel>
+</Window>
