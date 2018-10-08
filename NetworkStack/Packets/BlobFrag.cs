@@ -21,47 +21,23 @@ namespace ACE.Network.Packets
 
         public ulong BlobSequenceId { get; private set; }
 
-        private ulong rawBlobID;
-        public ulong RawBlobId
+        private BlobFragSequence netBlobId;
+        public BlobFragSequence NetBlobId
         {
             get
             {
-                return rawBlobID;
+                return netBlobId;
             }
             set
             {
-                rawBlobID = value;
-                SequenceID = (uint)rawBlobID;
-                OrderingStamp = (ushort)(rawBlobID >> 32);
-                ServerID = (byte)(rawBlobID >> 48);
-                EventType = (SequenceFlags)(rawBlobID >> 56);
+                netBlobId = value;
 
                 if (IsEphemeral)
-                    BlobSequenceId = GetSequenceID(value);
+                    BlobSequenceId = GetSequenceID(value.RawValue);
                 else
-                    BlobSequenceId = value;
+                    BlobSequenceId = value.RawValue;
             }
         }
-
-        /// <summary>
-        /// For non-ephemeral messages, this appears to just count up.  For ephemeral messages, this stays the same (for the same objectID and same message type?), and the orderingStamp defines the sequence.
-        /// </summary>
-        private uint SequenceID { get; set; }
-
-        /// <summary>
-        /// This appears to count up for all message types.
-        /// </summary>
-        private ushort OrderingStamp { get; set; }
-
-        /// <summary>
-        /// This should match the id from the packet header for server to client.  Client seems to leave this 0.
-        /// </summary>
-        private byte ServerID { get; set; }
-
-        /// <summary>
-        /// Flag values identifying the message properties
-        /// </summary>
-        private SequenceFlags EventType { get; set; }
 
         /// <summary>
         /// The number of fragments that make up the full content.  Partial fragments will always be sent alone and will fill the entire packet, except for the tail fragment.  The tail fragment can be sent prior to the others if it will fit.
@@ -102,7 +78,7 @@ namespace ACE.Network.Packets
 
         public ushort DataSize => (ushort)(BlobFragSize - BlobFragHeaderSize);
 
-        public bool IsEphemeral => EventType.HasFlag(SequenceFlags.Ephemeral);
+        public bool IsEphemeral => NetBlobId.EventType.HasFlag(SequenceFlags.Ephemeral);
 
         public BlobFrag(BinaryReader reader)
         {
@@ -110,7 +86,7 @@ namespace ACE.Network.Packets
             UnpackHeaders(reader);
             log.Assert(reader.BytesRemaining() >= DataSize, "Not enough bytes remaining");
             Bytes = reader.ReadBytes(DataSize);
-            log.DebugFormat("Reading Frag. BlobId: {0}, NumFrags: {1}, BlobFragSize: {2}, BlobNum: {3}, QueueID: {4}", RawBlobId, NumFrags, BlobFragSize, BlobNum, QueueID);
+            log.DebugFormat("Reading Frag. BlobId: {0}, NumFrags: {1}, BlobFragSize: {2}, BlobNum: {3}, QueueID: {4}", NetBlobId, NumFrags, BlobFragSize, BlobNum, QueueID);
         }
 
         public BlobFrag(byte[] bytes)
@@ -120,7 +96,7 @@ namespace ACE.Network.Packets
 
         private void UnpackHeaders(BinaryReader reader)
         {
-            RawBlobId = reader.ReadUInt64();
+            NetBlobId = new BlobFragSequence(reader.ReadUInt64());
             NumFrags = reader.ReadUInt16();
             BlobFragSize = reader.ReadUInt16();
             BlobNum = reader.ReadUInt16();
@@ -129,12 +105,12 @@ namespace ACE.Network.Packets
 
         public void Pack(BinaryWriter writer)
         {
-            log.DebugAssert(RawBlobId != 0, "BlobId not set");
+            log.DebugAssert(NetBlobId.RawValue != 0, "BlobId not set");
             log.DebugAssert(NumFrags > 0, "NumFrags not set");
             log.DebugAssert(BlobNum >= 0 && BlobNum < NumFrags, "BlobNum Invalid");
             log.DebugAssert(QueueID != 0, "QueueID not set");
             log.DebugAssert(Bytes.Length > 0, "Bytes is zero");
-            writer.Write(RawBlobId);
+            writer.Write(NetBlobId.RawValue);
             writer.Write(NumFrags);
             writer.Write(BlobFragSize);
             writer.Write(BlobNum);
@@ -156,7 +132,7 @@ namespace ACE.Network.Packets
 
         public static ulong GetSequenceID(ulong id)
         {
-            return id & 0xFF0000FFFFFFFFFF;
+            return id & 0xFF0000FFFFFFFF;
         }
 
         public static ulong MakeNetBlobId(ulong eventType, ulong id)

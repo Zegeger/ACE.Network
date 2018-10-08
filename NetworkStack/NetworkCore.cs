@@ -60,7 +60,11 @@ namespace ACE.Network
             }
 
             // Create our session, regardless of if we found one, we'll need it to send a failure response
-            ServerNetworkSession session = new ServerNetworkSession(p.IPAddress, recId);
+            ServerNetworkSession session = null;
+            if(Type == NetworkType.Server)
+                session = new ServerNetworkSession(p.IPAddress, recId);
+            else
+                // Client Session
 
             // We didn't find a open slot. Reject with error.
             if(!foundOpening)

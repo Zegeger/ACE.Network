@@ -14,7 +14,7 @@ namespace ACE.Network
     {
         
 
-        public ServerNetworkSession(IPEndPoint ip, uint recId) : base(ip, recId)
+        public ServerNetworkSession(IPEndPoint ip, uint recId) : base(ip, recId, NetworkType.Server)
         {
             
         }
@@ -29,28 +29,8 @@ namespace ACE.Network
             base.ProcessPacket(p);
         }
 
-        protected override bool VerifyPacketHeader(Packet p)
+        protected override bool VerifyPacket(Packet p)
         {
-            if (p.RecId > 0x100)
-            {
-                return false;
-            }
-            else
-            {
-                int diff = Util.OverflowCompare(p.Iteration, Iteration);
-                if (diff < 0)
-                {
-                    return false;
-                }
-                if (diff > 0 && !p.Header.HasFlag(PacketHeaderFlags.LoginRequest))
-                {
-                    return false;
-                }
-                if (p.DataLen > 0xFFE0u)
-                {
-                    return false;
-                }
-            }
             return true;
         }
     }
